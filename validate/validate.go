@@ -1,10 +1,12 @@
 package validate
 
 import (
+	"errors"
 	english "github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/translations/en"
+	"reflect"
 )
 
 type validation struct {
@@ -50,6 +52,13 @@ func (v *validation) Validate() error {
 	// collect human-readable errors
 	vErrors, _ := err.(validator.ValidationErrors)
 	for _, vError := range vErrors {
+
+		// custom reject fields
+		// add return custom error description
+		if structFields, ok := reflect.TypeOf(v.data).Elem().FieldByName(vError.Field()); ok {
+			return errors.New(structFields.Tag.Get("reject"))
+		}
+
 		return vError
 	}
 
